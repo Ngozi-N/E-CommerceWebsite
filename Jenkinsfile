@@ -208,7 +208,15 @@ pipeline {
                        script {
                            withAWS(credentials: 'access-key', region: "${params.AWS_REGION}") {
                                sh 'terraform init'
-                               sh 'terraform workspace select dev || terraform workspace new dev'
+                               sh '''
+                               set -e
+                               
+                               if terraform workspace list | grep -q "\\bdev\\b"; then
+                                  terraform workspace select dev
+                               else
+                                  terraform workspace new dev
+                               fi
+                               '''
                                sh 'terraform plan -out=tfplan'
                                sh 'terraform apply -auto-approve tfplan'
                            }
